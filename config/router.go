@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"o-ten/config/router"
 )
@@ -9,10 +10,17 @@ import (
 func Router() *gin.Engine {
 	r := gin.Default()
 
-	r.LoadHTMLGlob("frontend/www/**/*")
-	r.Static("/static", "../static/")
-	r.StaticFile("/favicon.ico", "../static/favicon.ico")
-	router.View(r)
+	r.Use(static.Serve("/assets", static.LocalFile("./assets", true)))
+
+	v1 := r.Group("/api/v1")
+	{
+		//v1manager := v1.Group("/manager")
+		//v1manager.Use(middleware.JWTAuthMiddleware())
+		//router.V1Manager(v1manager)
+
+		v1public := v1.Group("/public")
+		router.V1Public(v1public)
+	}
 
 	return r
 }

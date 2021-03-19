@@ -13,5 +13,6 @@ func main() {
 	log.Println("port: ", port)
 
 	r := config.Router()
+
 	panic(r.Run(":" + port))
 }
