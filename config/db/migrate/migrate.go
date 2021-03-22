@@ -7,9 +7,14 @@ import (
 
 // AutoMigrate 自动迁移
 func AutoMigrate(db *gorm.DB) {
-	db.AutoMigrate(
+	err := db.AutoMigrate(
 		&model.Media{},
 		&model.Source{},
 		&model.Video{},
 	)
+
+	if err != nil {
+		panic("Database auto migrate fails: " + err.Error())
+	}
+
 }
