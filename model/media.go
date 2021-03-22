@@ -10,9 +10,10 @@ type Media struct {
 	CreatedAt    time.Time      `json:"createdAt"`
 	UpdatedAt    time.Time      `json:"updatedAt"`
 	DeletedAt    gorm.DeletedAt `json:"deletedAt" gorm:"index"`
-	Title        string
-	Introduction string
-	Region       string
-	year         int64
-	Cover        string
+	Title        string         `json:"title" gorm:"comment:'标题'"`
+	Introduction string         `json:"introduction" gorm:"comment:'简介'"`
+	Region       string         `json:"region" gorm:"comment:'地区'"`
+	year         int64          `json:"year" gorm:"comment:'年份'"`
+	Cover        string         `json:"cover" gorm:"comment:'封面'"`
+	Type         string         `json:"type" gorm:"comment:'类型'"`
 }
