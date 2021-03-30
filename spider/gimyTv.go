@@ -145,12 +145,6 @@ func GimyTvSpider() {
 		`
 		// 简介
 		introduction := detailElement.DOM.Find(descSelector).Text()
-
-		fmt.Println("剧类型：", mediaType)
-		fmt.Println("地区：", region)
-		fmt.Println("年份：", year)
-		fmt.Println("简介：", introduction)
-
 		// 播放地址 - 视频来源选择器
 		videoSourceSelector := `
 			.container > div.row:nth-of-type(2) > .col-md-wide-7.col-xs-1.padding-0 >
@@ -214,17 +208,17 @@ func GimyTvSpider() {
 				log.Fatal(err)
 			}
 
-			fmt.Println("------------------------ ", title, " ---------------------------------")
-			fmt.Println("封面地址: ", cover)
-			fmt.Println("播放页地址: ", sourceUrl)
-			fmt.Println("分类: ", mediaType)
-			fmt.Println("地区: ", region)
-			fmt.Println("年份: ", year)
-			fmt.Println("简介: ", introduction)
-			fmt.Println("视频来源地址: ", sourceName)
-			fmt.Println("视频标题: ", videoName)
-			fmt.Println("解析后的 url: ", data.Url)
-			fmt.Println()
+			log.Println("------------------------ ", title, " ---------------------------------")
+			log.Println("封面地址: ", cover)
+			log.Println("播放页地址: ", sourceUrl)
+			log.Println("分类: ", mediaType)
+			log.Println("地区: ", region)
+			log.Println("年份: ", year)
+			log.Println("简介: ", introduction)
+			log.Println("视频来源地址: ", sourceName)
+			log.Println("视频标题: ", videoName)
+			log.Println("解析后的 url: ", data.Url)
+			log.Println()
 
 			// 1. 查询是否存在该影视
 			var media model.Media
