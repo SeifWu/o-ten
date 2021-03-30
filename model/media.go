@@ -13,7 +13,7 @@ type Media struct {
 	Title        string         `json:"title" gorm:"comment:'标题'"`
 	Introduction string         `json:"introduction" gorm:"comment:'简介'"`
 	Region       string         `json:"region" gorm:"comment:'地区'"`
-	Year         int64          `json:"year" gorm:"comment:'年份'"`
+	Year         int            `json:"year" gorm:"comment:'年份'"`
 	Cover        string         `json:"cover" gorm:"comment:'封面'"`
 	Type         string         `json:"type" gorm:"comment:'类型'"`
 	IsCompleted  bool           `json:"is_completed" gorm:"comment:'是否完成'"`
