@@ -87,21 +87,27 @@ func GimyTvSpider() {
 
 			// 视频详情页网站
 			requestDetailURL := videoCardElement.Request.AbsoluteURL(videoCardElement.Attr("href"))
+			// TODO 查询数据库 requestDetailURL存在且已完成
 
-			// 查询数据库给结果
-			var media model.Media
-			DB.Debug().Model(&model.Media{}).Where("title = ?", title).First(&media)
-
-			// 只要是未完成就请求
-			if !media.IsCompleted {
-				// 通过Context上下文对象将【c 采集器】采集到的数据传递到【detailCollector 采集器】
-				ctx := colly.NewContext()
-				ctx.Put("title", title)
-				ctx.Put("cover", cover)
-
-				detailCollector.Request("GET", requestDetailURL, nil, ctx, nil)
-				//_ = detailCollector.Visit(requestDetailURL)
+			categoryName := ""
+			currentUrl := element.Request.URL.String()
+			if strings.HasPrefix(currentUrl, "https://gimytv.com/genre/2") {
+				categoryName = "电视剧"
 			}
+			if strings.HasPrefix(currentUrl, "https://gimytv.com/genre/1") {
+				categoryName = "电影"
+			}
+			if strings.HasPrefix(currentUrl, "https://gimytv.com/genre/4") {
+				categoryName = "动漫"
+			}
+
+			// 通过Context上下文对象将【c 采集器】采集到的数据传递到【detailCollector 采集器】
+			ctx := colly.NewContext()
+			ctx.Put("title", title)
+			ctx.Put("cover", cover)
+			ctx.Put("categoryName", categoryName)
+
+			detailCollector.Request("GET", requestDetailURL, nil, ctx, nil)
 		})
 	})
 
@@ -117,12 +123,9 @@ func GimyTvSpider() {
 
 	// 解析视频详情页面
 	detailCollector.OnHTML("body", func(detailElement *colly.HTMLElement) {
-		log.Println("获取上下文数据")
 		title := detailElement.Request.Ctx.Get("title")
 		cover := detailElement.Request.Ctx.Get("cover")
-		log.Println("视频名称：\t", title)
-		log.Println("视频封面：\t", cover)
-		log.Println()
+		categoryName := detailElement.Request.Ctx.Get("categoryName")
 
 		// 其他信息 css 选择器
 		otherInfoSelector := `
@@ -178,6 +181,7 @@ func GimyTvSpider() {
 				ctx.Put("sourceUrl", detailElement.Request.URL.String())
 				ctx.Put("sourceName", v.Name)
 				ctx.Put("videoName", name)
+				ctx.Put("categoryName", categoryName)
 
 				playerCollector.Request("GET", requestDetailURL, nil, ctx, nil)
 
@@ -198,7 +202,7 @@ func GimyTvSpider() {
 			sourceUrl := playerElement.Request.Ctx.Get("sourceUrl")
 			sourceName := playerElement.Request.Ctx.Get("sourceName")
 			videoName := playerElement.Request.Ctx.Get("videoName")
-
+			categoryName := playerElement.Request.Ctx.Get("categoryName")
 			dat := playerElement.Text
 			jsonData := dat[strings.Index(dat, "{"):]
 			data := &PlayPathDetail{}
@@ -210,6 +214,7 @@ func GimyTvSpider() {
 			log.Println("------------------------ ", title, " ---------------------------------")
 			log.Println("封面地址: ", cover)
 			log.Println("播放页地址: ", sourceUrl)
+			log.Println("类别：", categoryName)
 			log.Println("分类: ", mediaType)
 			log.Println("地区: ", region)
 			log.Println("年份: ", year)
@@ -236,6 +241,7 @@ func GimyTvSpider() {
 					Region:       region,
 					Year:         mediaYear,
 					Introduction: introduction,
+					CategoryName: categoryName,
 				}
 				_ = DB.Debug().Create(&media)
 			}

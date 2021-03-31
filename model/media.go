@@ -16,6 +16,6 @@ type Media struct {
 	Year         int            `json:"year" gorm:"comment:'年份'"`
 	Cover        string         `json:"cover" gorm:"comment:'封面'"`
 	Type         string         `json:"type" gorm:"comment:'类型'"`
-	IsCompleted  bool           `json:"is_completed" gorm:"comment:'是否完成'"`
+	CategoryName string			`json:"categoryName"`
 	Source       []Source
 }
