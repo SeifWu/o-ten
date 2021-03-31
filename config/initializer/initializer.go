@@ -11,6 +11,7 @@ import (
 func Init() {
 	InitEnv()
 	InitDB()
+	InitCron()
 }
 
 // InitEnv 初始化环境变量

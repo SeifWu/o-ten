@@ -36,7 +36,6 @@ func GimyTvSpider() {
 	DB := global.DB
 	// 创建主采集器
 	c := colly.NewCollector(
-		colly.Async(true),
 		colly.AllowedDomains("gimytv.com"),
 		colly.UserAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"),
 	)
@@ -73,7 +72,7 @@ func GimyTvSpider() {
 
 	// 视频列表选择器
 	videoListDomSelector := `
-		.myui-panel.active.myui-panel-bg.clearfix > .myui-panel-box.clearfix > .myui-panel_bd > .myui-vodlist.clearfix 
+		.myui-panel.active.myui-panel-bg.clearfix > .myui-panel-box.clearfix > .myui-panel_bd > .myui-vodlist.clearfix
 	`
 
 	c.OnHTML(videoListDomSelector, func(element *colly.HTMLElement) {
@@ -89,20 +88,19 @@ func GimyTvSpider() {
 			// 视频详情页网站
 			requestDetailURL := videoCardElement.Request.AbsoluteURL(videoCardElement.Attr("href"))
 
-			// 通过Context上下文对象将【c 采集器】采集到的数据传递到【detailCollector 采集器】
-			detailCollector.OnRequest(func(r *colly.Request) {
-				r.Ctx.Put("title", title)
-				r.Ctx.Put("cover", cover)
-			})
-
 			// 查询数据库给结果
 			var media model.Media
 			DB.Debug().Model(&model.Media{}).Where("title = ?", title).First(&media)
 
 			// 只要是未完成就请求
 			if !media.IsCompleted {
-				_ = detailCollector.Visit(requestDetailURL)
-				detailCollector.Wait()
+				// 通过Context上下文对象将【c 采集器】采集到的数据传递到【detailCollector 采集器】
+				ctx := colly.NewContext()
+				ctx.Put("title", title)
+				ctx.Put("cover", cover)
+
+				detailCollector.Request("GET", requestDetailURL, nil, ctx, nil)
+				//_ = detailCollector.Visit(requestDetailURL)
 			}
 		})
 	})
@@ -128,7 +126,7 @@ func GimyTvSpider() {
 
 		// 其他信息 css 选择器
 		otherInfoSelector := `
-			.container > div.row:nth-of-type(1) > div.myui-panel.myui-panel-bg.clearfix > div.myui-panel-box.clearfix > 
+			.container > div.row:nth-of-type(1) > div.myui-panel.myui-panel-bg.clearfix > div.myui-panel-box.clearfix >
 			div.col-xs-1:nth-of-type(2) > .myui-content__detail > p:nth-of-type(1)
 		`
 		// 视频类型
@@ -140,7 +138,7 @@ func GimyTvSpider() {
 
 		descSelector := `
 			.container > div.row:nth-of-type(2) > .col-md-wide-7.col-xs-1.padding-0 >
-			div#desc > .myui-panel-box.clearfix > 
+			div#desc > .myui-panel-box.clearfix >
 			.myui-panel_bd > .col-pd.text-collapse.content > span.sketch.content
 		`
 		// 简介
@@ -148,7 +146,7 @@ func GimyTvSpider() {
 		// 播放地址 - 视频来源选择器
 		videoSourceSelector := `
 			.container > div.row:nth-of-type(2) > .col-md-wide-7.col-xs-1.padding-0 >
-			div#desc > .myui-panel-box.clearfix > 
+			div.myui-panel.myui-panel-bg.clearfix:nth-of-type(2) > .myui-panel-box.clearfix >
 			.myui-panel_hd .myui-panel__head.active.bottom-line.clearfix > .nav.nav-tabs.active > li
 		`
 
@@ -169,20 +167,21 @@ func GimyTvSpider() {
 				url := liElement.ChildAttr("a", "href")
 				name := liElement.ChildText("a")
 				requestDetailURL := liElement.Request.AbsoluteURL(url)
-				playerCollector.OnRequest(func(r *colly.Request) {
-					r.Ctx.Put("title", title)
-					r.Ctx.Put("cover", cover)
-					r.Ctx.Put("mediaType", mediaType)
-					r.Ctx.Put("region", region)
-					r.Ctx.Put("mediaType", year)
-					r.Ctx.Put("region", introduction)
-					r.Ctx.Put("sourceUrl", detailElement.Request.URL.String())
-					r.Ctx.Put("sourceName", v.Name)
-					r.Ctx.Put("videoName", name)
-				})
 
-				_ = playerCollector.Visit(requestDetailURL)
-				playerCollector.Wait()
+				ctx := colly.NewContext()
+				ctx.Put("title", title)
+				ctx.Put("cover", cover)
+				ctx.Put("mediaType", mediaType)
+				ctx.Put("region", region)
+				ctx.Put("year", year)
+				ctx.Put("introduction", introduction)
+				ctx.Put("sourceUrl", detailElement.Request.URL.String())
+				ctx.Put("sourceName", v.Name)
+				ctx.Put("videoName", name)
+
+				playerCollector.Request("GET", requestDetailURL, nil, ctx, nil)
+
+				//_ = playerCollector.Visit(requestDetailURL)
 			})
 		}
 	})
@@ -238,7 +237,7 @@ func GimyTvSpider() {
 					Year:         mediaYear,
 					Introduction: introduction,
 				}
-				_ = DB.Create(&media)
+				_ = DB.Debug().Create(&media)
 			}
 
 			// 查询来源是否存在
@@ -257,7 +256,7 @@ func GimyTvSpider() {
 					SourceUrl:  sourceUrl,
 					MediaId:    media.ID,
 				}
-				_ = DB.Create(&source)
+				_ = DB.Debug().Create(&source)
 			}
 
 			// 查询视频数量用于排序
@@ -273,7 +272,7 @@ func GimyTvSpider() {
 					SourceId: source.ID,
 					OrderSeq: float64(count),
 				}
-				_ = DB.Create(&video)
+				_ = DB.Debug().Create(&video)
 			}
 		},
 	)
@@ -295,5 +294,4 @@ func GimyTvSpider() {
 	}
 	// consume requests
 	_ = q.Run(c)
-	c.Wait()
 }
