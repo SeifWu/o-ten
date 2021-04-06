@@ -8,6 +8,7 @@ import (
 // AutoMigrate 自动迁移
 func AutoMigrate(db *gorm.DB) {
 	err := db.AutoMigrate(
+		&model.Tag{},
 		&model.Media{},
 		&model.Source{},
 		&model.Video{},
