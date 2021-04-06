@@ -89,6 +89,7 @@ func GimyTvSpider() {
 			requestDetailURL := videoCardElement.Request.AbsoluteURL(videoCardElement.Attr("href"))
 			// TODO 查询数据库 requestDetailURL存在且已完成
 
+
 			categoryName := ""
 			currentUrl := element.Request.URL.String()
 			if strings.HasPrefix(currentUrl, "https://gimytv.com/genre/2") {
@@ -139,6 +140,14 @@ func GimyTvSpider() {
 		// 年份
 		year := detailElement.DOM.Find(otherInfoSelector + " > a:nth-of-type(3)").Text()
 
+		// 剧迷内最后更新时间
+		lastUpdatedAtSelector := `
+			.container > div.row:nth-of-type(1) > div.myui-panel.myui-panel-bg.clearfix > div.myui-panel-box.clearfix >
+			div.col-xs-1:nth-of-type(2) > .myui-content__detail > p:nth-last-of-type(2)
+		`
+		lastUpdatedAt := detailElement.DOM.Find(lastUpdatedAtSelector).Text()
+		fmt.Println(lastUpdatedAt)
+
 		descSelector := `
 			.container > div.row:nth-of-type(2) > .col-md-wide-7.col-xs-1.padding-0 >
 			div#desc > .myui-panel-box.clearfix >
@@ -184,8 +193,6 @@ func GimyTvSpider() {
 				ctx.Put("categoryName", categoryName)
 
 				playerCollector.Request("GET", requestDetailURL, nil, ctx, nil)
-
-				//_ = playerCollector.Visit(requestDetailURL)
 			})
 		}
 	})
@@ -210,19 +217,6 @@ func GimyTvSpider() {
 			if err != nil {
 				log.Fatal(err)
 			}
-
-			log.Println("------------------------ ", title, " ---------------------------------")
-			log.Println("封面地址: ", cover)
-			log.Println("播放页地址: ", sourceUrl)
-			log.Println("类别：", categoryName)
-			log.Println("分类: ", mediaType)
-			log.Println("地区: ", region)
-			log.Println("年份: ", year)
-			log.Println("简介: ", introduction)
-			log.Println("视频来源地址: ", sourceName)
-			log.Println("视频标题: ", videoName)
-			log.Println("解析后的 url: ", data.Url)
-			log.Println()
 
 			// 1. 查询是否存在该影视
 			var media model.Media
@@ -284,9 +278,9 @@ func GimyTvSpider() {
 	)
 
 	urls := []string{
-		"https://gimytv.com/genre/1--------1---.html",
-		"https://gimytv.com/genre/2--------1---.html",
-		"https://gimytv.com/genre/4--------1---.html",
+		//"https://gimytv.com/genre/1--------1---.html",
+		"https://gimytv.com/genre/2--------176---.html",
+		//"https://gimytv.com/genre/4--------1---.html",
 	}
 
 	q, _ := queue.New(
