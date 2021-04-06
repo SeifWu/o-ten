@@ -9,6 +9,7 @@ import (
 func AutoMigrate(db *gorm.DB) {
 	err := db.AutoMigrate(
 		&model.Tag{},
+		&model.Category{},
 		&model.Media{},
 		&model.Source{},
 		&model.Video{},
