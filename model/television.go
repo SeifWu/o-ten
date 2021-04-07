@@ -11,5 +11,5 @@ type Television struct {
 	CategoryName string `json:"categoryName" gorm:"comment:分类名称;"`
 	Region       string `json:"region" gorm:"comment:地区;"`
 	Year         int    `json:"year" gorm:"comment:年份;"`
-	//Toy   Toy `gorm:"polymorphic:Owner;"`
+	Source       Source `gorm:"polymorphic:Owner;"`
 }
