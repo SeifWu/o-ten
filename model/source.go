@@ -5,7 +5,7 @@ import "time"
 type Source struct {
 	Base
 	Name          string    `json:"name" gorm:"comment:来源名称"`
-	OwnerId       int64     `json:"ownerId" gorm:"comment:拥有者ID"`
+	OwnerID      int64     	`json:"ownerId" gorm:"comment:拥有者ID"`
 	OwnerType     string    `json:"ownerType" gorm:"comment:拥有者表名"`
 	Domain        string    `json:"domain" gorm:"comment:采集网站"`
 	SourceUrl     string    `json:"sourceUrl" gorm:"comment:来源链接"`

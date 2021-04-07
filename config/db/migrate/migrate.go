@@ -11,8 +11,6 @@ func AutoMigrate(db *gorm.DB) {
 		&model.Tag{},
 		&model.Category{},
 		&model.Television{},
-
-		&model.Media{},
 		&model.Source{},
 		&model.Video{},
 	)
