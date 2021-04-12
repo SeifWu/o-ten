@@ -11,5 +11,5 @@ type Source struct {
 	SourceUrl     string    `json:"sourceUrl" gorm:"comment:来源链接"`
 	UpdatedFlag   string    `json:"updatedFlag" gorm:"comment:来源是否更新标识"`
 	IsCompleted   bool      `json:"isCompleted" gorm:"comment:'是否完成'"`
-	LastCollectAt time.Time `json:"lastCollectAt" gorm:"comment:'最后采集时间'"`
+	LastCollectAt *time.Time `json:"lastCollectAt" gorm:"comment:'最后采集时间'"`
 }
