@@ -5,6 +5,7 @@ import (
 	"log"
 	"o-ten/config"
 	"o-ten/config/initializer"
+	"o-ten/spider"
 )
 
 func main() {
@@ -13,5 +14,7 @@ func main() {
 	log.Println("port: ", port)
 
 	r := config.Router()
+
+	go spider.FiitvrComSpider()
 	panic(r.Run(":" + port))
 }
