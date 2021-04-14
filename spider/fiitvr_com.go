@@ -14,7 +14,7 @@ import (
 )
 
 type playerDetail struct {
-	Url  string `json:"url"`
+	Url string `json:"url"`
 }
 
 // fiitvr.com 爬虫
@@ -63,7 +63,6 @@ func FiitvrComSpider() {
 		// TODO 日志报错
 	})
 
-
 	c.OnHTML(videoListDomSelector, func(listElement *colly.HTMLElement) {
 		liDonSelector := "li.vodlist_item > a"
 		listElement.ForEach(liDonSelector, func(i int, videoCardElement *colly.HTMLElement) {
@@ -81,7 +80,7 @@ func FiitvrComSpider() {
 		nextPageUrl := element.Request.AbsoluteURL(nextPage)
 		currentUrl := element.Request.URL.String()
 
-		if currentUrl != nextPageUrl && strings.Contains(nextPageUrl,"/by/time.html") {
+		if currentUrl != nextPageUrl && strings.Contains(nextPageUrl, "/by/time.html") {
 			log.Println("当前页", currentUrl, "下一页：", nextPageUrl)
 			log.Println()
 			_ = c.Visit(nextPageUrl)
@@ -111,16 +110,16 @@ func FiitvrComSpider() {
 			// 分类
 			categoryName := bodyElement.DOM.Find(otherInfoSelector + "li.data:nth-of-type(1) > a:nth-last-of-type(1)").Text()
 			// 更新 flag
-			updatedFlag := strings.Trim(bodyElement.DOM.Find(otherInfoSelector + "li.data:nth-of-type(2)").Text(), " ")
+			updatedFlag := strings.Trim(bodyElement.DOM.Find(otherInfoSelector+"li.data:nth-of-type(2)").Text(), " ")
 
 			var television model.Television
 			DB.Model(&model.Television{}).Where("name = ?", videoName).First(&television)
 			if television.ID == 0 {
 				television = model.Television{
-					Name: videoName,
-					Cover: videoCover,
-					Year: year,
-					Region: region,
+					Name:         videoName,
+					Cover:        videoCover,
+					Year:         year,
+					Region:       region,
 					CategoryName: categoryName,
 				}
 				_ = DB.Create(&television)
@@ -145,12 +144,12 @@ func FiitvrComSpider() {
 				DB.Where(&model.Source{Name: sourceName, Domain: "fiitvr.com", SourceUrl: sourceUrl}).First(&source)
 				if source.ID == 0 {
 					source = model.Source{
-						Name: sourceName,
-						OwnerID: television.ID,
-						OwnerType: "television",
-						Domain: "fiitvr.com",
-						SourceUrl: sourceUrl,
-						UpdatedFlag: updatedFlag,
+						Name:          sourceName,
+						OwnerID:       television.ID,
+						OwnerType:     "television",
+						Domain:        "fiitvr.com",
+						SourceUrl:     sourceUrl,
+						UpdatedFlag:   updatedFlag,
 						LastCollectAt: &now,
 					}
 					DB.Model(&model.Source{}).Create(&source)
@@ -174,7 +173,7 @@ func FiitvrComSpider() {
 			jsonData := scriptString[strings.Index(scriptString, "{"):]
 			data := &playerDetail{}
 			err := json.Unmarshal([]byte(jsonData), data)
-			if err !=nil {
+			if err != nil {
 				// TODO 发送错误日志
 				log.Fatal(err)
 			}
@@ -186,17 +185,17 @@ func FiitvrComSpider() {
 
 			var video model.Video
 			DB.Where(&model.Video{
-				Title: videoName,
+				Title:    videoName,
 				SourceID: sourceIDInt64,
-				Url: data.Url,
+				Url:      data.Url,
 			}).First(&video)
 
 			if video.ID == 0 {
 				video = model.Video{
-					Title: videoName,
-					SourceID: sourceIDInt64,
-					Url: data.Url,
-					OrderSeq: float64(count),
+					Title:     videoName,
+					SourceID:  sourceIDInt64,
+					Url:       data.Url,
+					OrderSeq:  float64(count),
 					SourceUrl: element.Request.URL.String(),
 				}
 				_ = DB.Create(&video)
