@@ -100,7 +100,7 @@ func FiitvrComSpider() {
 			// 请求地址
 			sourceUrl := bodyElement.Request.URL.String()
 			// 视频名称
-			videoName, _ := infoDom.Attr("title")
+			televisionName, _ := infoDom.Attr("title")
 			// 封面
 			videoCover, _ := infoDom.Attr("data-original")
 			// 年份
@@ -113,10 +113,10 @@ func FiitvrComSpider() {
 			updatedFlag := strings.Trim(bodyElement.DOM.Find(otherInfoSelector+"li.data:nth-of-type(2)").Text(), " ")
 
 			var television model.Television
-			DB.Model(&model.Television{}).Where("name = ?", videoName).First(&television)
+			DB.Model(&model.Television{}).Where("name = ?", televisionName).First(&television)
 			if television.ID == 0 {
 				television = model.Television{
-					Name:         videoName,
+					Name:         televisionName,
 					Cover:        videoCover,
 					Year:         year,
 					Region:       region,
@@ -129,6 +129,14 @@ func FiitvrComSpider() {
 				.container > div.left_row.fl > div.pannel.clearfix#bofy > div.play_source > div.play_list_box.hide > 
 				div.playlist_full > ul.content_playlist.clearfix > li > a
 			`
+
+			type sourceStruct struct {
+				VideoName string
+				PlayerDetailUrl string
+			}
+			var sourceNames []string
+			sources := make(map[string][]sourceStruct)
+
 			bodyElement.ForEach(playerListSelector, func(i int, playerListElement *colly.HTMLElement) {
 				link := playerListElement.Attr("href")
 				hrefArray := strings.Split(link, "-")
@@ -139,9 +147,24 @@ func FiitvrComSpider() {
 				// 播放页地址
 				playerDetailUrl := playerListElement.Request.AbsoluteURL(link)
 
+				if sources[sourceName] == nil {
+					sourceNames = append(sourceNames, sourceName)
+					sources[sourceName] = []sourceStruct {{PlayerDetailUrl: playerDetailUrl, VideoName: videoName}}
+				} else {
+					sources[sourceName] = append(sources[sourceName], sourceStruct {
+						VideoName: videoName,
+						PlayerDetailUrl: playerDetailUrl,
+					})
+				}
+			})
+
+			for _, sourceName := range sourceNames {
 				var source model.Source
+				// 当前时间
 				now := time.Now()
+				// 查询 source 是否存在
 				DB.Where(&model.Source{Name: sourceName, Domain: "fiitvr.com", SourceUrl: sourceUrl}).First(&source)
+				// source 不存在时
 				if source.ID == 0 {
 					source = model.Source{
 						Name:          sourceName,
@@ -155,12 +178,23 @@ func FiitvrComSpider() {
 					DB.Model(&model.Source{}).Create(&source)
 				}
 
-				sourceIDString := strconv.Itoa(int(source.ID))
-				ctx := colly.NewContext()
-				ctx.Put("sourceID", sourceIDString)
-				ctx.Put("videoName", videoName)
-				playerCollector.Request("GET", playerDetailUrl, nil, ctx, nil)
-			})
+				// 查询 video 数量是否与 sources map 下数量相等
+				// 不相等时需要收集
+				var count int64
+				DB.Model(&model.Video{}).Where(&model.Video{SourceID: source.ID}).Count(&count)
+				if count != int64(len(sources[sourceName])) {
+					sourceIDString := strconv.Itoa(int(source.ID))
+					for _, sourceDetail := range sources[sourceName] {
+						ctx := colly.NewContext()
+						ctx.Put("sourceID", sourceIDString)
+						ctx.Put("videoName", sourceDetail.VideoName)
+						playerCollector.Request("GET", sourceDetail.PlayerDetailUrl, nil, ctx, nil)
+					}
+				} else {
+					log.Println("跳过了：", televisionName, sourceName)
+				}
+
+			}
 		},
 	)
 

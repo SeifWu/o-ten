@@ -6,6 +6,6 @@ type Video struct {
 	Url       string `json:"url" gorm:"comment:视频地址"`
 	OrderSeq  float64 `json:"orderSeq" gorm:"comment:排序"`
 	SourceID  int64 `json:"sourceId" gorm:"comment:来源ID"`
-	SourceUrl string `json:"sourceUrl" gorm:"comment:来源链接"`
+	SourceUrl string `json:"sourceUrl" gorm:"comment:来源链接,播放页地址"`
 	Source    Source
 }
