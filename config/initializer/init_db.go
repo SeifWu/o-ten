@@ -19,7 +19,9 @@ func InitDB() {
 		viper.GetString("DB_DATABASE"),
 		viper.GetString("DB_CHARSET"),
 	)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		//Logger: logger.Default.LogMode(logger.Error),
+	})
 
 	if err != nil {
 		panic("Database connection fails: " + err.Error())

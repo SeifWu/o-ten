@@ -11,5 +11,7 @@ type Television struct {
 	CategoryName string `json:"categoryName" gorm:"comment:分类名称;"`
 	Region       string `json:"region" gorm:"comment:地区;"`
 	Year         int    `json:"year" gorm:"comment:年份;"`
+	DoubanID     string `json:"douban_id" gorm:"comment:豆瓣ID"`
+	DoubanURL    string `json:"douban_url" gorm:"comment:豆瓣URL"`
 	Source       []Source `gorm:"polymorphic:Owner;"`
 }
