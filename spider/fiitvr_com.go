@@ -6,6 +6,8 @@ import (
 	"github.com/gocolly/colly/queue"
 	"github.com/gocolly/redisstorage"
 	"log"
+	"net"
+	"net/http"
 	"o-ten/global"
 	"o-ten/model"
 	"strconv"
@@ -26,7 +28,19 @@ func FiitvrComSpider() {
 	c := colly.NewCollector(
 		colly.AllowedDomains("fiitvr.com", "www.fiitvr.com"),
 		colly.UserAgent("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36"),
+		colly.AllowURLRevisit(),
 	)
+	c.WithTransport(&http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,          // 超时时间
+			KeepAlive: 30 * time.Second,          // keepAlive 超时时间
+		}).DialContext,
+		MaxIdleConns:          100,               // 最大空闲连接数
+		IdleConnTimeout:       90 * time.Second,  // 空闲连接超时
+		TLSHandshakeTimeout:   10 * time.Second,  // TLS 握手超时
+		ExpectContinueTimeout: 1 * time.Second,
+	})
 
 	// 创建 Redis Storage
 	storage := &redisstorage.Storage{
@@ -180,6 +194,7 @@ func FiitvrComSpider() {
 
 				// 查询 video 数量是否与 sources map 下数量相等
 				// 不相等时需要收集
+				// TODO source model 添加是否收集标识
 				var count int64
 				DB.Model(&model.Video{}).Where(&model.Video{SourceID: source.ID}).Count(&count)
 				if count != int64(len(sources[sourceName])) {
@@ -238,7 +253,9 @@ func FiitvrComSpider() {
 	)
 
 	urls := []string{
-		"https://www.fiitvr.com/gov1---1/by/time.html",
+		"https://www.fiitvr.com/gov1---88/by/time.html",
+		"https://www.fiitvr.com/gov2---6/by/time.html",
+		"https://www.fiitvr.com/gov4---1/by/time.html",
 	}
 	q, _ := queue.New(2, storage)
 	// 添加 URL 到队列
