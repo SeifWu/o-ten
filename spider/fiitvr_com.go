@@ -253,8 +253,8 @@ func FiitvrComSpider() {
 	)
 
 	urls := []string{
-		"https://www.fiitvr.com/gov1---88/by/time.html",
-		"https://www.fiitvr.com/gov2---6/by/time.html",
+		"https://www.fiitvr.com/gov1---386/by/time.html",
+		"https://www.fiitvr.com/gov2---37/by/time.html",
 		"https://www.fiitvr.com/gov4---1/by/time.html",
 	}
 	q, _ := queue.New(2, storage)

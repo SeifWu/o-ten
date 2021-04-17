@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"o-ten/config/db/migrate"
 	"o-ten/global"
 )
@@ -20,7 +21,7 @@ func InitDB() {
 		viper.GetString("DB_CHARSET"),
 	)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		//Logger: logger.Default.LogMode(logger.Error),
+		Logger: logger.Default.LogMode(logger.Silent),
 	})
 
 	if err != nil {

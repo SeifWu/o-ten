@@ -52,6 +52,7 @@ func IndexController(c *gin.Context) {
 	// 获取 DB
 	db := global.DB
 	var result interface{}
+	// TODO redis 缓存
 	result = fetchDoubanTvHot()
 
 	type tvDbStruct struct {
